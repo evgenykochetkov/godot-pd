@@ -4,7 +4,12 @@
 *.obj
 *.pdb
 *.dblite
+*.os
 
 libs/
 
 .vscode/
+.zed/
+
+compile_commands.json
+.cache/
