@@ -66,7 +66,7 @@ git clone --recurse-submodules https://github.com/fediazc/godot-pd.git
 
 2. Install the tools necessary for compiling Godot. You will **not** need to compile Godot, but they are the same tools you need to compile this extension. See [Godot docs: Building from source](https://docs.godotengine.org/en/stable/contributing/development/compiling/index.html#toc-devel-compiling) for details.
 
-3. Build libpd. Please see the [libpd repo](https://github.com/libpd/libpd) for details (it's recommended that you build with multi-instance support enabled). By default, the build files will be searched for in the `libpd/build/libs` folder. You can specify a different location by passing `libpd_lib_dir` as an argument to SCons in the next step:
+3. Build libpd. Please see [build.yml](.github/workflows/build.yml) and the [libpd repo](https://github.com/libpd/libpd) for details (it's recommended that you build with multi-instance support enabled). By default, the build files will be searched for in the `libpd/build/libs` folder. You can specify a different location by passing `libpd_lib_dir` as an argument to SCons in the next step:
 
 ```
 scons libpd_lib_dir=path/to/libpd/libs
