@@ -13,3 +13,5 @@ libs/
 
 compile_commands.json
 .cache/
+
+src/gen/
