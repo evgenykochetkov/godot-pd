@@ -2,9 +2,9 @@
 
 GDExtension that allows you to interact with and run [Pure Data](https://puredata.info/) patches in Godot.
 
-Currently uses Pd vanilla version [**0.54-1**](https://puredata.info/downloads/pure-data/releases/0.54-1).
+Currently uses Pd vanilla version [**0.56-1**](https://puredata.info/downloads/pure-data/releases/0.54-1).
 
-Latest tested Godot version: **4.3 stable**.
+Latest tested Godot version: **4.5 stable**.
 
 ## Installation
 
