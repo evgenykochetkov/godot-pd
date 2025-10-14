@@ -8,6 +8,12 @@
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
 
+// forward declare setup fucntions for external libraries
+// see https://github.com/libpd/libpd/wiki/Adding-Pure-Data-external-libraries-to-your-project#forward-declaring-the-external-setup-function
+extern "C" {
+	void else_subset_setup();
+}
+
 namespace godot {
 
 class AudioStreamPD : public AudioStream {

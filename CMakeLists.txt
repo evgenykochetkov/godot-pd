@@ -22,6 +22,9 @@ set(PD_MULTI ON CACHE BOOL "" FORCE)
 add_subdirectory(libpd)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libpd/cpp)
 
+set(PD_SOURCES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/libpd/pure-data/src" CACHE STRING "" FORCE)
+add_subdirectory(pd-else/subset)
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   # TODO: is this needed only for windows or for all platforms?
   set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
@@ -84,6 +87,7 @@ target_link_libraries(
   PRIVATE
     godot-cpp
     libpd_static
+    else_subset
     $<$<BOOL:${MINGW}>:-Wl,--export-all-symbols ws2_32 kernel32 -static-libgcc>
     Threads::Threads
 )

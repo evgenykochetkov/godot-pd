@@ -106,6 +106,9 @@ AudioStreamPlaybackPD::AudioStreamPlaybackPD() {
 	receiver.set_signaller(this);
 	pd.setReceiver(&receiver);
 	pd.setMidiReceiver(&receiver);
+
+	// setup external libs
+	else_subset_setup();
 }
 
 AudioStreamPlaybackPD::~AudioStreamPlaybackPD() {
