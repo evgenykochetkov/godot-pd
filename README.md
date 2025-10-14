@@ -56,34 +56,7 @@ func _on_receive_float(dest: String, num: float):
 
 ## Building from source
 
-**Important**: It's recommended that you build libpd (see step 3) with multi-instance support enabled. Otherwise, this extension is not guaranteed to work, and using multiple `AudioStreamPlayer` nodes may not behave as expected.
-
-1. Clone the repository and initialize submodules:
-
+```sh
+# on macOS
+./dev.macos.sh
 ```
-git clone --recurse-submodules https://github.com/fediazc/godot-pd.git
-```
-
-2. Install the tools necessary for compiling Godot. You will **not** need to compile Godot, but they are the same tools you need to compile this extension. See [Godot docs: Building from source](https://docs.godotengine.org/en/stable/contributing/development/compiling/index.html#toc-devel-compiling) for details.
-
-3. Build libpd. Please see [build.yml](.github/workflows/build.yml) and the [libpd repo](https://github.com/libpd/libpd) for details (it's recommended that you build with multi-instance support enabled). By default, the build files will be searched for in the `libpd/build/libs` folder. You can specify a different location by passing `libpd_lib_dir` as an argument to SCons in the next step:
-
-```
-scons libpd_lib_dir=path/to/libpd/libs
-```
-
-**Note**: If you are building without multi-instance support, you will need to pass `pd_multi=no` as an argument to SCons in the next step.
-
-4. To compile the extension, run SCons from the project root:
-
-```
-scons platform=<platform>
-```
-
-5. After compilation, copy the libpd dynamic library files (named libpd or libpd-multi, with .dll, .so, or .dylib extensions, depending on your platform and build settings) to `demo/addons/godot-pd/bin/<platform>/<target>-<arch>/`.
-    - **If you are building for macOS**, this folder will be `demo/addons/godot-pd/bin/macos/libgodotpd.macos.<target>.framework/` instead.
-    - **If you are building for Windows**, you will also need to copy the pthread library used to build libpd. If you compiled libpd with MinGW, the library is likely libwinpthread-1.dll; if you used Visual Studio, it is likely pthreadVC2.dll.
-
-6. Finally, ensure the paths in `demo/addons/godot-pd/godot-pd.gdextension` are correct. This file assumes you followed the previous steps and used MinGW to compile for Windows. For more details about .gdextension files, please see the [Godot docs](https://docs.godotengine.org/en/stable/tutorials/scripting/gdextension/gdextension_file.html).
-
-To use the extension in your project, copy the `addons/` folder from `demo/` directory into the root of your project folder.

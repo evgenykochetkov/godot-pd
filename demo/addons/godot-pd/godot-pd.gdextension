@@ -6,29 +6,17 @@ reloadable = true
 
 [libraries]
 
-windows.debug.x86_64 = "res://addons/godot-pd/bin/windows/template_debug-x86_64/libgodotpd.windows.template_debug.x86_64.dll"
-windows.release.x86_64 = "res://addons/godot-pd/bin/windows/template_release-x86_64/libgodotpd.windows.template_release.x86_64.dll"
-linux.debug.x86_64 = "res://addons/godot-pd/bin/linux/template_debug-x86_64/libgodotpd.linux.template_debug.x86_64.so"
-linux.release.x86_64 = "res://addons/godot-pd/bin/linux/template_release-x86_64/libgodotpd.linux.template_release.x86_64.so"
-macos.debug = "res://addons/godot-pd/bin/macos/libgodotpd.macos.template_debug.framework"
-macos.release = "res://addons/godot-pd/bin/macos/libgodotpd.macos.template_release.framework"
+linux.debug.x86_64 = "res://addons/godot-pd/bin/libgodot-pd.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://addons/godot-pd/bin/libgodot-pd.linux.template_release.x86_64.so"
+linux.debug.arm64 = "res://addons/godot-pd/bin/libgodot-pd.linux.template_debug.aarch64.so"
+linux.release.arm64 = "res://addons/godot-pd/bin/libgodot-pd.linux.template_release.aarch64.so"
 
-[dependencies]
+windows.debug.x86_64 = "res://addons/godot-pd/bin/godot-pd.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://addons/godot-pd/bin/godot-pd.windows.template_release.x86_64.dll"
 
-windows.debug.x86_64 = {
-    "res://addons/godot-pd/bin/windows/template_debug-x86_64/libpd-multi.dll" : "",
-    "res://addons/godot-pd/bin/windows/template_debug-x86_64/libwinpthread-1.dll" : "",
-}
-windows.release.x86_64 = {
-    "res://addons/godot-pd/bin/windows/template_release-x86_64/libpd-multi.dll" : "",
-    "res://addons/godot-pd/bin/windows/template_release-x86_64/libwinpthread-1.dll" : "",
-}
-linux.debug.x86_64 = {
-    "res://addons/godot-pd/bin/linux/template_debug-x86_64/libpd-multi.so" : "",
-}
-linux.release.x86_64 = {
-    "res://addons/godot-pd/bin/linux/template_release-x86_64/libpd-multi.so" : "",
-}
+macos.debug = "res://addons/godot-pd/bin/libgodot-pd.macos.template_debug.universal.dylib"
+macos.release = "res://addons/godot-pd/bin/libgodot-pd.macos.template_release.universal.dylib"
+
 
 [icons]
 

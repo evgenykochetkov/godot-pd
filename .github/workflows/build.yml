@@ -16,66 +16,40 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - identifier: linux-debug-arm
+            name: Linux Debug (ARM)
+            runner: ubuntu-24.04-arm
+            build-type: Debug
+          - identifier: linux-release-arm
+            name: Linux Release (ARM)
+            runner: ubuntu-24.04-arm
+            target: template_release
+            build-type: Release
           - identifier: linux-debug
             name: Linux Debug
             runner: ubuntu-latest
-            target: template_debug
-            platform: linux
-            arch: x86_64
             build-type: Debug
-            libpd-lib-dir: libpd/build/libs/
-            target-dir: demo/addons/godot-pd/bin/linux/template_debug-x86_64/
-            suffix: .so
           - identifier: linux-release
             name: Linux Release
             runner: ubuntu-latest
             target: template_release
-            platform: linux
-            arch: x86_64
             build-type: Release
-            libpd-lib-dir: libpd/build/libs/
-            target-dir: demo/addons/godot-pd/bin/linux/template_release-x86_64/
-            suffix: .so
-          - identifier: windows-debug
-            name: Windows Debug
-            runner: ubuntu-latest
-            target: template_debug
-            platform: windows
-            arch: x86_64
-            build-type: Debug
-            libpd-lib-dir: libpd/build/libs/
-            target-dir: demo/addons/godot-pd/bin/windows/template_debug-x86_64/
-            suffix: .dll
-          - identifier: windows-release
-            name: Windows Release
-            runner: ubuntu-latest
-            target: template_release
-            platform: windows
-            arch: x86_64
-            build-type: Release
-            libpd-lib-dir: libpd/build/libs/
-            target-dir: demo/addons/godot-pd/bin/windows/template_release-x86_64/
-            suffix: .dll
+          # - identifier: windows-debug
+          #   name: Windows Debug
+          #   runner: ubuntu-latest
+          #   build-type: Debug
+          # - identifier: windows-release
+          #   name: Windows Release
+          #   runner: ubuntu-latest
+          #   build-type: Release
           - identifier: macos-debug
             name: macOS Debug
             runner: macos-latest
-            target: template_debug
-            platform: macos
-            arch: ''
             build-type: Debug
-            libpd-lib-dir: libpd/build/libs/
-            target-dir: demo/addons/godot-pd/bin/macos/libgodotpd.macos.template_debug.framework/
-            suffix: .dylib
           - identifier: macos-release
             name: macOS Release
             runner: macos-latest
-            target: template_release
-            platform: macos
-            arch: ''
             build-type: Release
-            libpd-lib-dir: libpd/build/libs/
-            target-dir: demo/addons/godot-pd/bin/macos/libgodotpd.macos.template_release.framework/
-            suffix: .dylib
 
     steps:
       - name: (Windows) Install mingw64
@@ -88,64 +62,41 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.12
-      
-      - name: Install SCons
-        run: |
-          python -m pip install scons
-          scons --version
+          python-version: 3.13
         
       - name: Checkout Project
         uses: actions/checkout@v4
         with:
           submodules: recursive
       
-      - name: (Windows) Compile libpd
+      - name: (Windows) Compile
         if: ${{ startsWith(matrix.identifier, 'windows-') }}
         run: |
-          cd libpd
-          echo 'set(CMAKE_SHARED_LIBRARY_PREFIX "")' >> CMakeLists.txt
-          mkdir build && cd build
-          cmake .. -DPD_MULTI:BOOL=ON -DCMAKE_TOOLCHAIN_FILE=../../toolchain-mingw-x86_64-w64.cmake -DCMAKE_BUILD_TYPE='${{ matrix.build-type }}'
-          cmake --build .
-          cd libs
-          mv liblibpd-multi.dll.a libpd-multi.a
-          ls -l
+          cmake . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_TOOLCHAIN_FILE=./toolchain-mingw-x86_64-w64.cmake
+          cmake --build build --config ${{ matrix.build-type }} --target install
+          ls -l ./build/bin ./build/libpd/libs
+          ls -l ./demo/addons/godot-pd/bin
       
-      - name: (Linux) Compile libpd
+      - name: (Linux) Compile
         if: ${{ startsWith(matrix.identifier, 'linux-') }}
         run: |
-          cd libpd
-          mkdir build && cd build
-          cmake .. -DPD_MULTI:BOOL=ON -DCMAKE_BUILD_TYPE='${{ matrix.build-type }}'
-          cmake --build .
-          cd libs
-          ls -l
+          cmake . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          cmake --build build --config ${{ matrix.build-type }} --target install
+          ls -l ./build/bin ./build/libpd/libs
+          ls -l ./demo/addons/godot-pd/bin
 
-      - name: (macOS) Compile libpd
+      - name: (macOS) Compile
         if: ${{ startsWith(matrix.identifier, 'macos-') }}
         run: |
-          cd libpd
-          mkdir build && cd build
-          cmake .. -DPD_MULTI:BOOL=ON -DCMAKE_BUILD_TYPE='${{ matrix.build-type }}' -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64' -DCMAKE_C_COMPILER=$(which clang)
-          cmake --build .
-          cd libs
-          ls -l      
-
-      - name: Compile Extension
-        run: |
-          scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' arch='${{ matrix.arch }}' libpd_lib_dir='${{ matrix.libpd-lib-dir }}'
-          ls -l ${{ matrix.target-dir }}
+          cmake . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          cmake --build build --config ${{ matrix.build-type }} --target install
+          ls -l ./build/bin ./build/libpd/libs
+          ls -l ./demo/addons/godot-pd/bin
           
-      - name: (Windows) Move pthread DLL
-        if: ${{ startsWith(matrix.identifier, 'windows-') }}
-        run: |
-          cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll ${{ matrix.target-dir }}
-
-      - name: Move Shared Library Files
-        run: |
-          cp ${{ format('{0}libpd-multi{1}', matrix.libpd-lib-dir, matrix.suffix) }} ${{ matrix.target-dir }}
-          ls -l ${{ matrix.target-dir }}
+      # - name: (Windows) Move pthread DLL
+      #   if: ${{ startsWith(matrix.identifier, 'windows-') }}
+      #   run: |
+      #     cp /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll ${{ matrix.target-dir }}
       
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
