@@ -5,3 +5,6 @@
 	path = libpd
 	url = https://github.com/evgenykochetkov/libpd.git
 	branch = pd-0.56-1
+[submodule "pd-else"]
+	path = pd-else
+	url = https://github.com/evgenykochetkov/pd-else.git
