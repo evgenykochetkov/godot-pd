@@ -46,13 +46,14 @@ class AudioStreamPlaybackPD : public AudioStreamPlaybackResampled {
 protected:
 	static void _bind_methods();
 	static pd::List _pd_list_from(const Array &p_arr);
+	static String get_absolute_patch_path(String p_relative_path);
 
 public:
 	int32_t _mix_resampled(AudioFrame *p_dst_buffer, int32_t p_frame_count) override;
 	float _get_stream_sampling_rate() const override;
 	void _start(double p_from_pos) override;
-	int open_patch(String p_path);
-	void close_patch(String p_path);
+	int open_patch(String p_relative_path);
+	void close_patch(String p_relative_path);
 	void close_patch_id(int p_dollar_zero);
 	void send_bang(String p_dest);
 	void send_float(String p_dest, float p_value);

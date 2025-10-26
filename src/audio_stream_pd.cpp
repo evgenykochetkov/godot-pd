@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <filesystem>
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/os.hpp>
+#include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 
@@ -42,8 +44,8 @@ int AudioStreamPD::get_mix_rate() const {
 //////////////
 
 void AudioStreamPlaybackPD::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("open_patch", "path"), &AudioStreamPlaybackPD::open_patch);
-	ClassDB::bind_method(D_METHOD("close_patch", "path"), &AudioStreamPlaybackPD::close_patch);
+	ClassDB::bind_method(D_METHOD("open_patch", "relative_path"), &AudioStreamPlaybackPD::open_patch);
+	ClassDB::bind_method(D_METHOD("close_patch", "relative_path"), &AudioStreamPlaybackPD::close_patch);
 	ClassDB::bind_method(D_METHOD("close_patch_id", "dollar_zero"), &AudioStreamPlaybackPD::close_patch_id);
 	ClassDB::bind_method(D_METHOD("send_bang", "dest"), &AudioStreamPlaybackPD::send_bang);
 	ClassDB::bind_method(D_METHOD("send_float", "dest", "value"), &AudioStreamPlaybackPD::send_float);
@@ -100,12 +102,48 @@ pd::List AudioStreamPlaybackPD::_pd_list_from(const Array &p_arr) {
 	return list;
 }
 
+String AudioStreamPlaybackPD::get_absolute_patch_path(String p_relative_path) {
+	if (OS::get_singleton()->has_feature("editor")) {
+		// Running from an editor binary.
+		return ProjectSettings::get_singleton()->globalize_path("res://")
+												.path_join(p_relative_path)
+												.simplify_path();
+	} else {
+		// Running from an exported project.
+		//
+		// This is NOT identical to using `ProjectSettings.globalize_path()` with a `res://` path,
+		// but is close enough in spirit.
+		// On macOS, this would be `YourGameName.app/Contents/MacOS`
+		// see https://apple.stackexchange.com/questions/228116/add-delete-modify-files-within-a-disk-image-dmg//403082
+		// and https://github.com/godotengine/godot/issues/22950
+		//
+		// Note that you will have to MANUALLY copy the `pd` directory there.
+		// Setting "filter to exporting non-resource files" will pack it
+		// into .pck file that is not accessable by libpd
+		return OS::get_singleton()->get_executable_path()
+								   .get_base_dir()
+								   .path_join(p_relative_path)
+								   .simplify_path();
+	}
+}
+
 AudioStreamPlaybackPD::AudioStreamPlaybackPD() {
 	active = false;
 	stream = nullptr;
 	receiver.set_signaller(this);
 	pd.setReceiver(&receiver);
 	pd.setMidiReceiver(&receiver);
+
+	std::string path_to_else_subset_abstractions = std_string_from(
+		OS::get_singleton()->has_feature("editor")
+			? ProjectSettings::get_singleton()->globalize_path("res://addons/godot-pd/else_subset")
+			: OS::get_singleton()->get_executable_path().get_base_dir().path_join("else_subset")
+	);
+	ERR_FAIL_COND_MSG(
+		!fs::is_directory(fs::path(path_to_else_subset_abstractions)),
+		"Trying to add " + godot_string_from(path_to_else_subset_abstractions) + " to libpd search path, but it does not exist"
+	);
+	pd.addToSearchPath(path_to_else_subset_abstractions);
 
 	// setup external libs
 	else_subset_setup();
@@ -159,12 +197,13 @@ void AudioStreamPlaybackPD::_start(double p_from_pos) {
 	begin_resample();
 }
 
-int AudioStreamPlaybackPD::open_patch(String p_path) {
-	fs::path path = fs::path(std_string_from(p_path)).lexically_normal();
+int AudioStreamPlaybackPD::open_patch(String p_relative_path) {
+	String abs_path = get_absolute_patch_path(p_relative_path);
+	fs::path path = fs::path(std_string_from(abs_path)).lexically_normal();
 	auto filename = path.filename().string();
 	auto dir = path.parent_path().string();
 
-	ERR_FAIL_COND_V_MSG(filename.empty(), -1, "No filename included in path" + p_path);
+	ERR_FAIL_COND_V_MSG(filename.empty(), -1, "No filename included in path" + abs_path);
 
 	if (dir.empty()) {
 		dir = ".";
@@ -178,12 +217,13 @@ int AudioStreamPlaybackPD::open_patch(String p_path) {
 	return patch.dollarZero();
 }
 
-void AudioStreamPlaybackPD::close_patch(String p_path) {
-	fs::path path = fs::path(std_string_from(p_path)).lexically_normal();
+void AudioStreamPlaybackPD::close_patch(String p_relative_path) {
+	String abs_path = get_absolute_patch_path(p_relative_path);
+	fs::path path = fs::path(std_string_from(abs_path)).lexically_normal();
 	auto filename = path.filename().string();
 	auto dir = path.parent_path().string();
 
-	ERR_FAIL_COND_MSG(filename.empty(), "No filename included in path" + p_path);
+	ERR_FAIL_COND_MSG(filename.empty(), "No filename included in path" + abs_path);
 
 	if (dir.empty()) {
 		dir = ".";

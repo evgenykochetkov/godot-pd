@@ -16,3 +16,5 @@ compile_commands.json
 
 src/gen/
 build/
+
+demo/addons/godot-pd/else_subset
