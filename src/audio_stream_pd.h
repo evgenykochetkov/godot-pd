@@ -19,22 +19,15 @@ namespace godot {
 class AudioStreamPD : public AudioStream {
 	GDCLASS(AudioStreamPD, AudioStream)
 
-	int mix_rate;
-
 protected:
-	static void _bind_methods();
+	static void _bind_methods() {};
 
 public:
 	Ref<AudioStreamPlayback> _instantiate_playback() const override;
-	void set_mix_rate(int p_mix_rate);
-	int get_mix_rate() const;
-
-	AudioStreamPD();
-	~AudioStreamPD();
 };
 
-class AudioStreamPlaybackPD : public AudioStreamPlaybackResampled {
-	GDCLASS(AudioStreamPlaybackPD, AudioStreamPlaybackResampled)
+class AudioStreamPlaybackPD : public AudioStreamPlayback {
+	GDCLASS(AudioStreamPlaybackPD, AudioStreamPlayback)
 	friend class AudioStreamPD;
 
 	const AudioStreamPD *stream;
@@ -49,8 +42,7 @@ protected:
 	static String get_absolute_patch_path(String p_relative_path);
 
 public:
-	int32_t _mix_resampled(AudioFrame *p_dst_buffer, int32_t p_frame_count) override;
-	float _get_stream_sampling_rate() const override;
+	int32_t _mix(AudioFrame *p_dst_buffer, float p_rate_scale, int32_t p_frame_count) override;
 	void _start(double p_from_pos) override;
 	int open_patch(String p_relative_path);
 	void close_patch(String p_relative_path);

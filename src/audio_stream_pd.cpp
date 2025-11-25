@@ -2,6 +2,7 @@
 #include "util.hpp"
 #include <algorithm>
 #include <filesystem>
+#include <godot_cpp/classes/audio_server.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
@@ -11,17 +12,6 @@
 using namespace godot;
 namespace fs = std::filesystem;
 
-void AudioStreamPD::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("set_mix_rate", "mix_rate"), &AudioStreamPD::set_mix_rate);
-	ClassDB::bind_method(D_METHOD("get_mix_rate"), &AudioStreamPD::get_mix_rate);
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "mix_rate", PROPERTY_HINT_RANGE, "20,192000,1,suffix:Hz"), "set_mix_rate", "get_mix_rate");
-}
-
-AudioStreamPD::AudioStreamPD() {
-	mix_rate = 44100;
-}
-
-AudioStreamPD::~AudioStreamPD() {}
 
 Ref<AudioStreamPlayback> AudioStreamPD::_instantiate_playback() const {
 	Ref<AudioStreamPlaybackPD> playback;
@@ -31,14 +21,6 @@ Ref<AudioStreamPlayback> AudioStreamPD::_instantiate_playback() const {
 	playback->stream = this;
 
 	return playback;
-}
-
-void AudioStreamPD::set_mix_rate(int p_mix_rate) {
-	mix_rate = p_mix_rate;
-}
-
-int AudioStreamPD::get_mix_rate() const {
-	return mix_rate;
 }
 
 //////////////
@@ -161,7 +143,7 @@ AudioStreamPlaybackPD::~AudioStreamPlaybackPD() {
 	pd.clear();
 }
 
-int32_t AudioStreamPlaybackPD::_mix_resampled(AudioFrame *p_dst_buffer, int32_t p_frame_count) {
+int32_t AudioStreamPlaybackPD::_mix(AudioFrame *p_dst_buffer, float p_rate_scale, int32_t p_frame_count) {
 	if (!active) {
 		return 0;
 	}
@@ -180,21 +162,16 @@ int32_t AudioStreamPlaybackPD::_mix_resampled(AudioFrame *p_dst_buffer, int32_t 
 	return ticks * libpd_blocksize();
 }
 
-float AudioStreamPlaybackPD::_get_stream_sampling_rate() const {
-	ERR_FAIL_COND_V_MSG(stream == nullptr, -1, "No audio stream available. Cannot get sample rate.");
-
-	return stream->get_mix_rate();
-}
-
 void AudioStreamPlaybackPD::_start(double p_from_pos) {
 	ERR_FAIL_COND_MSG(stream == nullptr, "No audio stream available.");
 
-	ERR_FAIL_COND_MSG(!pd.init(0, 2, stream->get_mix_rate(), true), "Pure Data could not be initialized.");
+	int sampleRate = AudioServer::get_singleton()->get_mix_rate();
+	bool isPdInitialized = pd.init(0, 2, sampleRate, true);
+	ERR_FAIL_COND_MSG(!isPdInitialized, "Pure Data could not be initialized.");
 
 	active = true;
 
 	pd.computeAudio(true);
-	begin_resample();
 }
 
 int AudioStreamPlaybackPD::open_patch(String p_relative_path) {
